@@ -1,5 +1,8 @@
 # The Volqueter
 
+![alt text](https://github.com/Elias288/The-Volqueter/blob/master/Presentacion_ElVolquetero.png)
+
+
 Documentacion [aqui](https://docs.google.com/document/d/1YriiSp7WTm8NyI8ItO5Xf70g7835mfzEbFsax31XXDw/edit?usp=sharing)
 
 Lista de reproduccion [aqui](https://www.youtube.com/playlist?list=PLyhkEEoUjSQtUiSOu-N4BIrHBFtLNjkyE)
