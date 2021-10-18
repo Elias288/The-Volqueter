@@ -12,13 +12,14 @@ function make_actor(sp, x, y, w, h, flp)
 		acc=0.5,  --aceleracion
 		boost=4,  --salto
 		anim=0,
-
+		vida=2, -- vida y golpes
+		golp=false,
 		junmping=false,
 		running=false,
 		landed=false,
 		falling=false,
 		sliding=false,
-
+		s=estados.idle,
 		draw=draw_actor,
 		move=move_actor,
 	}
@@ -30,11 +31,16 @@ function make_actor(sp, x, y, w, h, flp)
 
 	return a
 end
-
+estados = {
+	idle=0,
+	fight=1,
+	punch=2,
+	dead=4
+}
 function make_player(sp, x, y)
 	flp=false
 	local a = make_actor(sp, x, y, 16, 16, flp)
-	
+
 	a.is_player=true
 	a.carrosa=dibujar_carrosa
 	a.spc=33 			--carrosa
@@ -43,48 +49,119 @@ function make_player(sp, x, y)
 
 	return a
 end
+function colision (a, b)
+	local box_a = abs_box(a)
+	local box_b = abs_box(b)
+	
+	if box_a.x > box_b.w or
+				box_a.y > box_b.h or
+				box_b.x > box_a.w or
+				box_b.y > box_a.h then
+		return false
+	end
+	
+	return true
+end
+function add_estado (e, estado)
+	e.s |= estado
+end
 
+function del_estado (e, estado)
+	e.s &= ~estado
+end
+
+function has_estado (e, estado)
+	return estado == 0 or e.s & estado != 0
+end
+
+function ctrl_ia (e)
+ -- colision con el jugador
+
+ 	if colision(e,player) then
+ 		
+ 		-- si colisiona, se pone a
+ 		-- pelear
+ 		e.s = estados.fight
+ 		
+ 		-- si el jug esta punch
+ 		if has_estado(player, estados.punch) then
+ 			-- si esta con el puno extendido
+ 			if player.sp == 5 or player.sp == 7  then
+ 				if not e.golp then
+	 				e.vida -= 1
+ 					e.golp = true
+ 				end
+ 			else
+ 				e.golp = false
+ 			end
+ 		else
+ 			e.golp = false
+ 		end
+ 	end
+ 	
+ 	-- verifico vida
+ 	if e.vida <= 0 then
+ 	 if e.s != estados.dead then
+ 	 	e.s = estados.dead
+ 	 	e.sp = 203
+ 	 end
+ 	 
+ 		e.vida = 0
+ 	end
+ 
+ 
+ if e.s == estados.idle  then
+ 	-- estado normal
+ 	-- - caminar aleatoriamente
+ 	local acel = 1
+ 	
+ 	if e.dx < 0.01 and e.dy < 0.01 then
+ 	 -- un dado de 4 lados
+ 	 -- porque quiero elegir entre
+ 	 -- 4 direcciones
+ 	 local dir=rnd(4)
+ 	 
+ 	 if (dir < 2) then
+ 	 	-- mover horiz
+ 	 	acel *= dir < 1 and -1 or 1
+ 	 	
+ 	 	e.dx += acel
+ 	 else
+ 	 	-- mover horiz
+ 	 	acel *= dir < 3 and -1 or 1
+ 	 	
+ 	 	e.dy += acel
+ 	 end
+ 	end	
+ elseif has_estado(e, estados.fight) then
+ -- peleando
+ -- - perseguir al jugador
+ 	acel = 0.2
+ 	
+ 	if (player.x > e.x) e.dx += acel
+ 	if (player.x < e.x) e.dx -= acel
+ 	if (player.y > e.y) e.dy += acel
+ 	if (player.y < e.y) e.dy -= acel
+ 	
+ end
+
+end
+function update_ent (e)
+	ctrl_ia(e)
+end
+function abs_box (e)
+ local box = {}
+ 
+ box.x = e.x
+ box.y = e.y
+ box.w = e.x + e.w
+ box.h = e.y + e.h
+ 
+ return box
+end
 function _init()
-	--[[player={
-		spb=1,   --sprite bernie
-		spc=33,   --sprite carroza
-		life=3,
-		x=59,
-		y=4,
-		h=16,
-		w=16,
-		dx=0,
-		dy=0,
-		flp=false, --false:derecha true:izquierda
-		acc=0.5,  --aceleracion
-		boost=4,  --salto
-		anim=0,
-
-		junmping=false,
-		running=false,
-		landed=false,
-		falling=false
-	}]]
 
 	player = make_player(1, 10, 40)
-
-	--[[maxi={
-		sp=192,   
-		x=80,
-		y=40,
-		h=16,
-		w=16,
-		dx=0,
-		dy=0,
-		flp=false, --false:derecha true:izquierda
-		acc=0.5,  --aceleracion
-		anim=0,
-		junmping=false,
-		running=false,
-		landed=false,
-		falling=false
-	}]]
-
 	maxi = make_actor(192, 120, 40, 16, 16, true)
 
 	gravity=0.3
@@ -116,6 +193,7 @@ function _update()
 
 	player_update()
 	--animate()
+	update_ent(maxi)
 	player_animate()
 
 	cam_x=player.x-64+(player.w/2)
@@ -497,7 +575,7 @@ __map__
 4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4a4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f494f4f494f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f000000000000000000000000000000000000000000000000000000000000000000000000
 4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f494f4f4f4f4f4f4647474747484f4f4f4f494f4f494f4f4f4f4f4f4f4f4d4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f000000000000000000000000000000000000000000000000000000000000000000000000
 60614f4f4f4f4f4f4f4f4f4f4f4f4f4f4b4f494f4f4f4f4f4f494f4f4f4f494f4f4f4f494f4f494f4f4f4f4f4f4f4f494f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f000000000000000000000000000000000000000000000000000000000000000000000000
-70714f4f4f4b4f4f4f4b4f4f4f4c4f4f4240504140434f4f4b494f4f4b4f494f4f4f4f494e4b494f4f4f4f4f4f4c4f494f4b4f4f4f4b4f4f4f4c4f4f4f4b4f4e4f4b4f4f4f4f4b4f4f4f4b4f4f4f4f4f4f4f4b4f4f4f4b4f42414041000000000000000000000000000000000000000000000000000000000000000000000000
+70714f4f4f4b4f4f4f4b4f4f4f4c4f4f4240404140434f4f4b494f4f4b4f494f4f4f4f494e4b494f4f4f4f4f4f4c4f494f4b4f4f4f4b4f4f4f4c4f4f4f4b4f4e4f4b4f4f4f4f4b4f4f4f4b4f4f4f4f4f4f4f4b4f4f4f4b4f42414041000000000000000000000000000000000000000000000000000000000000000000000000
 404040414140404041436c424140414050505050504040404140404040404040404040404040404041456c42414041414040404041404040404041404040404041436c42414040404041504042414040404140404041436c44505050000000000000000000000000000000000000000000000000000000000000000000000000
 505150505050505050457c445050505050505051505050505050505050505150505050505150505050457c44505050505050505050505050504050505050505050457c44505050505050505050505050505050505050457c44505150000000000000000000000000000000000000000000000000000000000000000000000000
 505050505050505150457c445051505050505050505050505150505050505050505050505050505050457c44505150505050505150505050515050505050505150457c44505050505150505050505150505050505150457c44505051000000000000000000000000000000000000000000000000000000000000000000000000
