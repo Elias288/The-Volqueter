@@ -50,9 +50,9 @@ function make_player(sp, x, y)
 	return a
 end
 function colision (a, b)
-	local box_a = abs_box(a)
-	local box_b = abs_box(b)
-	
+	local box_a = abs_box(a) -- a seria el maxi 
+	local box_b = abs_box(b) -- b seria berni
+
 	if box_a.x > box_b.w or
 				box_a.y > box_b.h or
 				box_b.x > box_a.w or
@@ -76,9 +76,9 @@ end
 
 function ctrl_ia (e)
  -- colision con el jugador
-
+ manuelito=1
  	if colision(e,player) then
- 		
+ 		manuelito=2
  		-- si colisiona, se pone a
  		-- pelear
  		e.s = estados.fight
@@ -114,12 +114,12 @@ function ctrl_ia (e)
  	-- estado normal
  	-- - caminar aleatoriamente
  	local acel = 1
- 	
- 	if e.dx < 0.01 and e.dy < 0.01 then
+ 	--manuelito="porque no estas caminando bebe"
+ 	if e.dx < 0.01 then
  	 -- un dado de 4 lados
  	 -- porque quiero elegir entre
  	 -- 4 direcciones
- 	 local dir=rnd(4)
+ 	 local dir=rnd(2)
  	 
  	 if (dir < 2) then
  	 	-- mover horiz
@@ -140,8 +140,6 @@ function ctrl_ia (e)
  	
  	if (player.x > e.x) e.dx += acel
  	if (player.x < e.x) e.dx -= acel
- 	if (player.y > e.y) e.dy += acel
- 	if (player.y < e.y) e.dy -= acel
  	
  end
 
@@ -163,7 +161,7 @@ function _init()
 
 	player = make_player(1, 10, 40)
 	maxi = make_actor(192, 120, 40, 16, 16, true)
-
+	manuelito=0
 	gravity=0.3
 	friccion=0.85
 
@@ -216,6 +214,7 @@ function _draw()
 	player:carrosa()
 	--dibujar_maxi(maxi)
 	maxi:draw()
+
 	--dibujar_carrosa(player)
 	--caminar(50, 35)
 
@@ -225,7 +224,7 @@ function _draw()
 	print("➡️= "..collide_r,player.x,player.y-16)
 	print("⬆️= "..collide_u,player.x,player.y-22)
 	print("⬇️= "..collide_d,player.x,player.y-28)
-
+	print("manuelito="..manuelito,player.x,player.y-32)
 end
 
 -->8
@@ -575,7 +574,7 @@ __map__
 4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4a4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f494f4f494f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f494f4f4f4f4f4f4647474747484f4f4f4f494f4f494f4f4f4f4f4f4f4f4d4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 60614f4f4f4f4f4f4f4f4f4f4f4f4f4f4b4f494f4f4f4f4f4f494f4f4f4f494f4f4f4f494f4f494f4f4f4f4f4f4f4f494f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
-70714f4f4f4b4f4f4f4b4f4f4f4c4f4f4240504140434f4f4b494f4f4b4f494f4f4f4f494e4b494f4f4f4f4f4f4c4f494f4b4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
+70714f4f4f4b4f4f4f4b4f4f4f4c4f4f4240404140434f4f4b494f4f4b4f494f4f4f4f494e4b494f4f4f4f4f4f4c4f494f4b4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 404040414140404041436c424140414050505050504040404140404040404040404040404040404041456c424140414140434f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 505150505050505050457c445050505050505051505050505050505050505150505050505150505050457c44505050505050434f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 505050505050505150457c445051505050505050505050505150505050505050505050505050505050457c4450515050505050434f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
@@ -619,3 +618,4 @@ __music__
 00 0c0d4344
 00 0a0b0e04
 02 0c0d0f04
+
