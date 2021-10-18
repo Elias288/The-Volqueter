@@ -29,25 +29,61 @@ function _init()
 		falling=false
 	}
 
+	maxi={
+		sp=192,   
+		x=80,
+		y=40,
+		h=16,
+		w=16,
+		dx=0,
+		dy=0,
+		flp=false, --false:derecha true:izquierda
+		acc=0.5,  --aceleracion
+		anim=0,
+		junmping=false,
+		running=false,
+		landed=false,
+		falling=false
+	}
+
 	gravity=0.3
 	friccion=0.85
 
 	tiempo=0
 	
 	palt(0, false)
- palt(7, true)
+	palt(7, true)
 
 	cam_x=0
+	map_start=0
+	map_end=1024
+
+	--test--
+	x1r=0 y1r=0
+	x2r=0 y2r=0
+	collide_l="no"
+	collide_r="no"
+	collide_u="no"
+	collide_d="no"
+
+	-------------
+
 end
 
 function _update()
- tiempo += 1
+	tiempo += 1
 
 	player_update()
 	player_animate()
 
 	cam_x=player.x-64+(player.w/2)
-	camera(cam_x, 0)
+	if cam_x<map_start then
+		cam_x=map_start
+	end
+	if cam_x>map_end-128 then
+		cam_x=map_end-128
+	end
+	camera(cam_x,0)
 end
 
 function _draw()
@@ -56,8 +92,17 @@ function _draw()
 	--camera(0,0)
 	map()
 	dibujar_player(player)
+	dibujar_maxi(maxi)
 	dibujar_carrosa(player)
 	--caminar(50, 35)
+
+	rect(x1r,y1r,
+		x2r,y2r,7)
+	print("⬅️= "..collide_l,player.x,player.y-10)
+	print("➡️= "..collide_r,player.x,player.y-16)
+	print("⬆️= "..collide_u,player.x,player.y-22)
+	print("⬇️= "..collide_d,player.x,player.y-28)
+
 end
 
 -->8
@@ -72,22 +117,35 @@ function dibujar_player(obj)
 		obj.w, -- no se ancho
 		obj.h, -- no se alto
 		obj.flp --flip
-	)
-		
-end
+		)
 
+end
+function dibujar_maxi(obj)
+	sspr(
+		(obj.sp%16)*8,
+		(obj.sp\16)*8,
+		obj.w, --ancho
+		obj.h, --alto
+		obj.x, --x
+		obj.y, --y
+		obj.w, -- no se ancho
+		obj.h, -- no se alto
+		obj.flp --flip
+		)
+
+end
 function dibujar_carrosa(obj)
 	local c_x, c_flp
 
 	if obj.flp then --izquierda
-		c_x = obj.x+16
+	c_x = obj.x+16
 	else	--derecha
-		c_x = obj.x-16
-	end
+	c_x = obj.x-16
+end
 
-	sspr(
-		(obj.spc%16)*8,
-		(obj.spc\16)*8,
+sspr(
+	(obj.spc%16)*8,
+	(obj.spc\16)*8,
 		obj.w, --ancho
 		obj.h, --alto
 		c_x, --x
@@ -95,14 +153,14 @@ function dibujar_carrosa(obj)
 		obj.w, -- no se ancho
 		obj.h, -- no se alto
 		obj.flp --flip
-	)
+		)
 end
 
 function player_animate()
 	if player.junmping then
 		player.spb=3
 	elseif player.falling then
-		player.spb=3
+		player.spb=1
 	elseif player.running then
 		if time()-player.anim>.1 then
 			player.anim=time()
@@ -140,44 +198,67 @@ function player_update()
 	end
 
 	if player.running 
-	and not btn(➡️)
-	and not btn(⬅️)
-	and not player.falling
-	and not player.junmping then
-		player.running=false
-	end
-	
-	if player.dy>0 then
-		player.falling=true
-		player.landed=false
-		player.junmping=false
-		
-		if map_collide(player, "down", 0) then
-			player.landed=true
-			player.falling=false
-			player.dy=0
-			player.y-=(player.y+player.h)%8
+		and not btn(➡️)
+		and not btn(⬅️)
+		and not player.falling
+		and not player.junmping then
+			player.running=false
 		end
-	elseif player.dy<0 then
-		player.junmping=true
-		if map_collide(player, "up", 1) then
-			player.dy=0
-		end
-	end
 
-	if player.dx<0 then
-		if map_collide(player, "left", 1) then
-			player.dx=0
-		end
-	elseif player.dx>0 then
-		if map_collide(player, "right", 1) then
-		 	player.dx=0
-		end
-	end
+		if player.dy>0 then
+			player.falling=true
+			player.landed=false
+			player.junmping=false
 
-	player.x+= player.dx
-	player.y+= player.dy
+			if map_collide(player, "down", 0) then
+				player.landed=true
+				player.falling=false
+				player.dy=0
+				player.y-=(player.y+player.h)%8
 
+				--test--
+				collide_d="yes"
+				else collide_d="no"
+				----
+			end
+		elseif player.dy<0 then
+			player.junmping=true
+			if map_collide(player, "up", 1) then
+				player.dy=0
+					--test--
+				collide_u="yes"
+				else collide_u="no"
+				----
+			end
+		end
+
+		if player.dx<0 then
+			if map_collide(player, "left", 1) then
+				player.dx=0
+					--test--
+				collide_l="yes"
+				else collide_l="no"
+				----
+			end
+		elseif player.dx>0 then
+			if map_collide(player, "right", 1) then
+				player.dx=0
+					--test--
+				collide_r="yes"
+				else collide_r="no"
+				----
+			end
+		end
+
+		player.x+= player.dx
+		player.y+= player.dy
+  --limit player to map
+  if player.x<map_start then
+  	player.x=map_start
+  end
+  if player.x>map_end-player.w then
+  	player.x=map_end-player.w
+  end
 end
 -->8
 function map_collide(obj, dir, flag)
@@ -190,27 +271,30 @@ function map_collide(obj, dir, flag)
 	local x2=0 local y2=0
 
 	if dir=="left" then
-		x1=x-1 
-		x2=x 
+		x1=x+4 
+		x2=x+4 
 		y1=y
 		y2=y+h-1
 	elseif dir=="right" then
-		x1=x+w 
-		x2=x+w+1
+		x1=x+w-5 
+		x2=x+w-5
 		y1=y 
 		y2=y+h-1
 	elseif dir=="up" then
-		x1=x+1
-		x2=x+w-1
+		x1=x+2
+		x2=x+w-9
 		y1=y-1
 		y2=y
 	elseif dir=="down" then
-		x1=x 
-		x2=x+w
+		x1=x+2
+		x2=x+w-9
 		y1=y+h
 		y2=y+h
 	end
-
+--test--
+x1r=x1 y1r=y1
+x2r=x2 y2r=y2
+------
 	--pixels to tiles
 	x1/=8
 	x2/=8
@@ -218,14 +302,14 @@ function map_collide(obj, dir, flag)
 	y2/=8
 
 	if fget(mget(x1,y1), flag)
-	or fget(mget(x1,y2), flag)
-	or fget(mget(x2,y1), flag)
-	or fget(mget(x2,y2), flag) then
-		return true
-	else
-		return false
+		or fget(mget(x1,y2), flag)
+		or fget(mget(x2,y1), flag)
+		or fget(mget(x2,y2), flag) then
+			return true
+		else
+			return false
+		end
 	end
-end
 
 __gfx__
 00000000777777777777777777777777777777777777777777777777777777777777777700000000000000000000000000000000000000000000000000000000
