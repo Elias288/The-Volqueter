@@ -1,14 +1,48 @@
 pico-8 cartridge // http://www.pico-8.com
 version 32
 __lua__
-function _init()
-	nivel_vida={
-		vida1=1,
-		vida2=128,
-		vida3=130
+function make_actor(sp, x, y, w, h, flp)
+	--sprite, x, y, ancho, halto, direccion
+	local a = {
+		sp=sp,
+		x=x, y=y,
+		h=h, w=w,
+		dx=0, dy=0,
+		flp=flp, --false:derecha true:izquierda
+		acc=0.5,  --aceleracion
+		boost=4,  --salto
+		anim=0,
+
+		junmping=false,
+		running=false,
+		landed=false,
+		falling=false,
+
+		draw=draw_actor,
 	}
 
-	player={
+	if(fget(sp,7)) then
+		a.is_monster=true
+	end
+
+	return a
+end
+
+function make_player(sp, x, y)
+	flp=false
+	local a = make_actor(sp, x, y, 16, 16, flp)
+	
+	a.is_player=true
+	a.carrosa=dibujar_carrosa
+	a.spc=33 			--carrosa
+	a.score=0
+	a.id=0
+
+	return a
+end
+
+function _init()
+	--[[player={
 		spb=1,   --sprite bernie
 		spc=33,   --sprite carroza
 		life=3,
@@ -27,9 +61,11 @@ function _init()
 		running=false,
 		landed=false,
 		falling=false
-	}
+	}]]
 
-	maxi={
+	player = make_player(1, 59, 4)
+
+	--[[maxi={
 		sp=192,   
 		x=80,
 		y=40,
@@ -44,7 +80,9 @@ function _init()
 		running=false,
 		landed=false,
 		falling=false
-	}
+	}]]
+
+	maxi = make_actor(192, 90, 40, 16, 16, true)
 
 	gravity=0.3
 	friccion=0.85
@@ -91,9 +129,12 @@ function _draw()
 	
 	--camera(0,0)
 	map()
-	dibujar_player(player)
-	dibujar_maxi(maxi)
-	dibujar_carrosa(player)
+	--dibujar_player(player)
+	player:draw()
+	player:carrosa()
+	--dibujar_maxi(maxi)
+	maxi:draw()
+	--dibujar_carrosa(player)
 	--caminar(50, 35)
 
 	rect(x1r,y1r,
@@ -106,46 +147,36 @@ function _draw()
 end
 
 -->8
-function dibujar_player(obj)
-	sspr(
-		(obj.spb%16)*8,
-		(obj.spb\16)*8,
-		obj.w, --ancho
-		obj.h, --alto
-		obj.x, --x
-		obj.y, --y
-		obj.w, -- no se ancho
-		obj.h, -- no se alto
-		obj.flp --flip
-		)
 
-end
-function dibujar_maxi(obj)
-	sspr(
-		(obj.sp%16)*8,
-		(obj.sp\16)*8,
-		obj.w, --ancho
-		obj.h, --alto
-		obj.x, --x
-		obj.y, --y
-		obj.w, -- no se ancho
-		obj.h, -- no se alto
-		obj.flp --flip
-		)
+function draw_actor(a)
+	local fr=a.sp
 
+	sspr(
+		(a.sp%16)*8,
+		(a.sp\16)*8,
+		a.w, --ancho
+		a.h, --alto
+		a.x, --x
+		a.y, --y
+		a.w, -- no se ancho
+		a.h, -- no se alto
+		a.flp --flip
+	)
 end
+
+
 function dibujar_carrosa(obj)
 	local c_x, c_flp
 
 	if obj.flp then --izquierda
-	c_x = obj.x+16
+		c_x = obj.x+16
 	else	--derecha
-	c_x = obj.x-16
-end
+		c_x = obj.x-16
+	end
 
-sspr(
-	(obj.spc%16)*8,
-	(obj.spc\16)*8,
+	sspr(
+		(obj.spc%16)*8,
+		(obj.spc\16)*8,
 		obj.w, --ancho
 		obj.h, --alto
 		c_x, --x
@@ -158,16 +189,18 @@ end
 
 function player_animate()
 	if player.junmping then
-		player.spb=3
+		player.sp=3
+		player.spc=33
 	elseif player.falling then
-		player.spb=1
+		player.sp=1
+		player.spc=33
 	elseif player.running then
 		if time()-player.anim>.1 then
 			player.anim=time()
-			player.spb+=2
+			player.sp+=2
 			player.spc+=2
-			if player.spb>=4 then
-				player.spb=1
+			if player.sp>=4 then
+				player.sp=1
 				player.spc=33
 			end
 		end
@@ -291,10 +324,10 @@ function map_collide(obj, dir, flag)
 		y1=y+h
 		y2=y+h
 	end
---test--
-x1r=x1 y1r=y1
-x2r=x2 y2r=y2
-------
+	--test--
+	x1r=x1 y1r=y1
+	x2r=x2 y2r=y2
+	------
 	--pixels to tiles
 	x1/=8
 	x2/=8
@@ -305,11 +338,11 @@ x2r=x2 y2r=y2
 		or fget(mget(x1,y2), flag)
 		or fget(mget(x2,y1), flag)
 		or fget(mget(x2,y2), flag) then
-			return true
-		else
-			return false
-		end
+		return true
+	else
+		return false
 	end
+end
 
 __gfx__
 00000000777777777777777777777777777777777777777777777777777777777777777700000000000000000000000000000000000000000000000000000000
@@ -442,7 +475,7 @@ ff1111cc1ff777770000000000000000000000000000000000000000000000000000000000000000
 77777111777777770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
 0001010000000000000100000000000000010100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003030303010001010100000000000000030000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001010000000000000000000000000000010100000000000000000000000000000101000000000000000000000000000001010000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080800000000000000000000000000000808000000000000000000000000000008080000000000000000000000000000080800000000000000000000000000000
 __map__
 4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
