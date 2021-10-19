@@ -25,7 +25,9 @@ function make_actor(sp, x, y, w, h, flp)
 	}
 
 	if(fget(sp,7)) then
+		print("es monstruo")
 		a.is_monster=true
+		a.acc=0.2
 		a.move=move_monster
 	end
 
@@ -49,6 +51,7 @@ function make_player(sp, x, y)
 
 	return a
 end
+
 function colision (a, b)
 	local box_a = abs_box(a) -- a seria el maxi 
 	local box_b = abs_box(b) -- b seria berni
@@ -75,8 +78,11 @@ function has_estado (e, estado)
 end
 
 function ctrl_ia (e)
- -- colision con el jugador
- manuelito=1
+	e.dx+=e.acc
+	e.x=e.dx
+	e.flip=true
+ 	-- colision con el jugador
+ 	--[[manuelito=1
  	if colision(e,player) then
  		manuelito=2
  		-- si colisiona, se pone a
@@ -85,7 +91,7 @@ function ctrl_ia (e)
  		
  		-- si el jug esta punch
  		if has_estado(player, estados.punch) then
- 			-- si esta con el puno extendido
+ 			si esta con el puno extendido
  			if player.sp == 5 or player.sp == 7  then
  				if not e.golp then
 	 				e.vida -= 1
@@ -97,51 +103,38 @@ function ctrl_ia (e)
  		else
  			e.golp = false
  		end
- 	end
+	end
+		
+	-- verifico vida
+	if e.vida <= 0 then
+		if e.s != estados.dead then
+			e.s = estados.dead
+			e.sp = 203
+		end
+		
+		e.vida = 0
+	end
+	
+	
+	if e.s == estados.idle  then
+		e.dx+=e.acc
+		e.flip=false
+	else
+		 mover horiz
+		acel *= dir < 3 and -1 or 1
+		
+		e.dy += acel
+	end
+			
+ 	elseif has_estado(e, estados.fight) then
+	-- peleando
+	-- - perseguir al jugador
+		acel = 0.2
+		
+		if (player.x > e.x) e.dx += acel
+		if (player.x < e.x) e.dx -= acel
  	
- 	-- verifico vida
- 	if e.vida <= 0 then
- 	 if e.s != estados.dead then
- 	 	e.s = estados.dead
- 	 	e.sp = 203
- 	 end
- 	 
- 		e.vida = 0
- 	end
- 
- 
- if e.s == estados.idle  then
- 	-- estado normal
- 	-- - caminar aleatoriamente
- 	local acel = 1
- 	--manuelito="porque no estas caminando bebe"
- 	if e.dx < 0.01 then
- 	 -- un dado de 4 lados
- 	 -- porque quiero elegir entre
- 	 -- 4 direcciones
- 	 local dir=rnd(2)
- 	 
- 	 if (dir < 2) then
- 	 	-- mover horiz
- 	 	acel *= dir < 1 and -1 or 1
- 	 	
- 	 	e.dx += acel
- 	 else
- 	 	-- mover horiz
- 	 	acel *= dir < 3 and -1 or 1
- 	 	
- 	 	e.dy += acel
- 	 end
- 	end	
- elseif has_estado(e, estados.fight) then
- -- peleando
- -- - perseguir al jugador
- 	acel = 0.2
- 	
- 	if (player.x > e.x) e.dx += acel
- 	if (player.x < e.x) e.dx -= acel
- 	
- end
+ 	end]]
 
 end
 function update_ent (e)
@@ -160,7 +153,7 @@ end
 function _init()
 
 	player = make_player(1, 10, 40)
-	maxi = make_actor(192, 120, 40, 16, 16, true)
+	maxi = make_actor(192, 280, 40, 16, 16, true)
 	manuelito=0
 	gravity=0.3
 	friccion=0.85
@@ -190,9 +183,9 @@ function _update()
 	tiempo += 1
 
 	player_update()
-	--animate()
-	update_ent(maxi)
 	player_animate()
+
+	monster_animate()
 
 	cam_x=player.x-64+(player.w/2)
 	if cam_x<map_start then
@@ -207,16 +200,13 @@ end
 function _draw()
 	cls()
 	
-	--camera(0,0)
 	map()
-	--dibujar_player(player)
+
 	player:draw()
 	player:carrosa()
-	--dibujar_maxi(maxi)
-	maxi:draw()
 
-	--dibujar_carrosa(player)
-	--caminar(50, 35)
+	maxi:draw()
+	maxi:move()
 
 	rect(x1r,y1r,
 		x2r,y2r,7)
@@ -290,6 +280,10 @@ function player_animate()
 	end
 end
 
+function monster_animate()
+
+end
+
 function player_update()
 	--physics
 	player.dy+=gravity
@@ -318,70 +312,141 @@ function player_update()
 		and not player.junmping then
 			player.running=false
 			player.sliding=true
+	end
+
+	if player.dy>0 then
+		player.falling=true
+		player.landed=false
+		player.junmping=false
+
+		if map_collide(player, "down", 0) then
+			player.landed=true
+			player.falling=false
+			player.dy=0
+			player.y-=((player.y+player.h+1)%8)-1
+
+			--test--
+			collide_d="yes"
+			else collide_d="no"
+			----
 		end
-
-		if player.dy>0 then
-			player.falling=true
-			player.landed=false
-			player.junmping=false
-
-			if map_collide(player, "down", 0) then
-				player.landed=true
-				player.falling=false
-				player.dy=0
-				player.y-=((player.y+player.h+1)%8)-1
-
+	elseif player.dy<0 then
+		player.junmping=true
+		if map_collide(player, "up", 1) then
+			player.dy=0
 				--test--
-				collide_d="yes"
-				else collide_d="no"
-				----
-			end
-		elseif player.dy<0 then
-			player.junmping=true
-			if map_collide(player, "up", 1) then
-				player.dy=0
-					--test--
-				collide_u="yes"
-				else collide_u="no"
-				----
-			end
+			collide_u="yes"
+			else collide_u="no"
+			----
 		end
+	end
 
-		if player.dx<0 then
-			if map_collide(player, "left", 1) then
-				player.dx=0
-					--test--
-				collide_l="yes"
-				else collide_l="no"
-				----
-			end
-		elseif player.dx>0 then
-			if map_collide(player, "right", 1) then
-				player.dx=0
-					--test--
-				collide_r="yes"
-				else collide_r="no"
-				----
-			end
+	if player.dx<0 then
+		if map_collide(player, "left", 1) then
+			player.dx=0
+				--test--
+			collide_l="yes"
+		else collide_l="no"
+			----
 		end
-
-		if player.sliding then
-			if abs(player.dx) <.2
-			or player.running then
-				player.dx=0
-				player.sliding=false
-			end
+	elseif player.dx>0 then
+		if map_collide(player, "right", 1) then
+			player.dx=0
+				--test--
+			collide_r="yes"
+			else collide_r="no"
+			----
 		end
+	end
 
-		player.x+= player.dx
-		player.y+= player.dy
-  --limit player to map
-  if player.x<map_start then
-  	player.x=map_start
-  end
-  if player.x>map_end-player.w then
-  	player.x=map_end-player.w
-  end
+	if player.sliding then
+		if abs(player.dx) <.2
+		or player.running then
+			player.dx=0
+			player.sliding=false
+		end
+	end
+
+	player.x+=player.dx
+	player.y+=player.dy
+	--limit player to map
+	if player.x<map_start then
+		player.x=map_start
+	end
+	if player.x>map_end-player.w then
+		player.x=map_end-player.w
+	end
+end
+
+function move_monster(e)
+	e.dy+=gravity
+	e.dx*=friccion
+
+	-- colision con el jugador
+ 	manuelito=1
+ 	if colision(e,player) then
+ 		manuelito=2
+	end
+
+	if e.flp then
+		e.dx-=e.acc
+	else
+		e.dx+=e.acc
+	end
+
+	if e.dy>0 then
+		e.falling=true
+		e.landed=false
+		e.junmping=false
+
+		if map_collide(e, "down", 0) then
+			e.landed=true
+			e.falling=false
+			e.dy=0
+			e.y-=((e.y+e.h+1)%8)-1
+
+			--test--
+			collide_d="yes"
+			else collide_d="no"
+			----
+		end
+	elseif e.dy<0 then
+		e.junmping=true
+		if map_collide(e, "up", 1) then
+			e.dy=0
+				--test--
+			collide_u="yes"
+			else collide_u="no"
+			----
+		end
+	end
+
+	if e.dx<0 then
+		if map_collide(e, "left", 1) then
+			e.dx=0
+			--e.dx*=1
+			e.flp=false
+		end
+	elseif e.dx>0 then
+		if map_collide(e, "right", 1) then
+			e.dx=0
+			--e.dx*=-1
+			e.flp=true
+		end
+	end
+
+	e.x+=e.dx
+	e.y+=e.dy
+
+	if e.x<=map_start then
+		e.x=map_start
+		--e.flip = false
+	end
+	if e.x>map_end - e.w then
+		e.x=map_end - e.w
+		--e.flip = false
+	end
+
 end
 -->8
 function map_collide(obj, dir, flag)
@@ -574,7 +639,7 @@ __map__
 4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4a4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f494f4f494f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f494f4f4f4f4f4f4647474747484f4f4f4f494f4f494f4f4f4f4f4f4f4f4d4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 0e0f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4b4f494f4f4f4f4f4f494f4f4f4f494f4f4f4f494f4f494f4f4f4f4f4f4f4f494f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
-1e1f4f4f4f4b4f4f4f4b4f4f4f4c4f4f4240504140434f4f4b494f4f4b4f494f4f4f4f494e4b494f4f4f4f4f4f4c4f494f4b4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
+1e1f4f4f4f4b4f4f4f4b4f4f4f4c4f4f4240404140434f4f4b494f4f4b4f494f4f4f4f494e4b494f4f4f4f4f42434f494f4b4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 404040414140404041436c424140414050505050504040404140404040404040404040404040404041456c424140414140434f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f46474747484f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 505150505050505050457c445050505050505051505050505050505050505150505050505150505050457c44505050505050434f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f494f4f4f494f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f545454545454544f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
 505050505050505150457c445051505050505050505050505150505050505050505050505050505050457c4450515050505050434f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f494f4f4f494f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f545556574f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f
