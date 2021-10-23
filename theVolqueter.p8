@@ -157,11 +157,11 @@ function _draw()
 
 	print(player.score,player.x, player.y-10)
 
-	boxplayer = abs_box(player)
+	--[[boxplayer = abs_box(player)
 	boxmaxi = abs_box(enemigos[1])
 	rect(boxmaxi.x, boxmaxi.y, boxmaxi.w, boxmaxi.h, 7)
 	rect(boxplayer.x, boxplayer.y, boxplayer.w, boxplayer.h, 7)
-	--[[rect(x1r,y1r, x2r,y2r,7)
+	rect(x1r,y1r, x2r,y2r,7)
 	print((player.invulnerable and "yes" or "no"), player.x, player.y-10)
 	]]
 
@@ -281,10 +281,8 @@ function _update()
 	foreach(enemigos, monster_animate)
 	foreach(items, item_update)
 
-	if player.vida>0 then
-		player_update()
-		player_animate()
-	end
+	player_update()
+	player_animate()
 
 	cam_x=player.x-64+(player.w/2)
 	if cam_x<map_start then
@@ -303,22 +301,26 @@ function player_update()
 	player.dy+=gravity
 	player.dx*=friccion
 
-	--controls
-	if btn(➡️) then
-		player.dx+=player.acc
-		player.running=true
-		player.flp=false
-	end
-	if btn(❎) and player.landed then
-		player.dy-=player.boost
-		player.landed=false
-	end
-	if btn(⬅️) then
-		player.dx-=player.acc
-		player.flp=true
-		player.running=true
-	end
 
+	if player.vida>0 then
+		--controls
+		if btn(➡️) then
+			player.dx+=player.acc
+			player.running=true
+			player.flp=false
+		end
+		if btn(❎) and player.landed then
+			player.dy-=player.boost
+			player.landed=false
+		end
+		if btn(⬅️) then
+			player.dx-=player.acc
+			player.flp=true
+			player.running=true
+		end
+
+	end
+	
 	if player.running 
 		and not btn(➡️)
 		and not btn(⬅️)
