@@ -17,7 +17,20 @@ posiciones_items={
 	{320,56}, 
 	{580,56},
 }
+function init_menu()
+_update = update_menu
+_draw = draw_menu
+end
+function draw_menu()
+cls()
+print("press x to start",30,60)
+end
 
+function update_menu ()
+if btnp (❎) then
+_initgame()
+end
+end
 function new_entity(sp, x, y)
 	--sprite, x, y, ancho, halto, direccion
 	local a={
@@ -107,7 +120,11 @@ function new_entity(sp, x, y)
 end
 
 function _init()
-	gravity=0.3
+	init_menu()
+end
+
+function _initgame()
+gravity=0.3
 	friccion=0.85
 
 	tiempo=0
@@ -161,8 +178,11 @@ function _init()
 	map_end=1024
 
 	--music(0)
+	
+	--set state
+_update = update_game
+_draw= draw_game
 end
-
 -->8
 
 function _draw()
@@ -206,7 +226,46 @@ function _draw()
 	]]
 
 end
+function draw_game()
+cls()
+	map()
 
+	--dibuja todas las entidades
+	foreach(entidades,function(obj) obj:draw() end)
+
+	--mueve todos los enemigos
+	foreach(enemigos, function(obj) monster_update(obj) end)
+	
+	--dibuja todos los items
+	foreach(items,
+		function(i)
+			if not i.recogido then
+				spr(i.sp,i.x, i.y)
+			end
+		end
+	)
+
+	if player.vida>0 then
+		player:carro()
+	end
+
+	--score
+	local top=5
+	local right=10  --player-50=right
+	local left=map_end-119
+	
+	draw_info()
+	read_carteles()
+
+	--boxplayer = abs_box(player)
+	--rect(boxplayer.x, boxplayer.y, boxplayer.w, boxplayer.h, 7)
+	--[[
+		boxmaxi = abs_box(enemigos[1])
+		rect(boxmaxi.x, boxmaxi.y, boxmaxi.w, boxmaxi.h, 7)
+		
+		rect(x1r,y1r, x2r,y2r,7)
+	]]
+end
 function draw_info()
 	print("bernie",cam_x+10,5,7)
 	print(player.score,cam_x+10,13,7)
@@ -388,6 +447,9 @@ end
 
 -->8
 function _update()
+
+end
+function update_game()
 	tiempo += 1
 
 	foreach(enemigos, monster_animate)
@@ -409,7 +471,6 @@ function _update()
 	camera(cam_x,0)
 
 end
-
 function player_update()
 	--physics
 	player.dy+=gravity
