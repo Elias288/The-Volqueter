@@ -302,6 +302,7 @@ cls()
 		print_centered("te hicieron pollo", 60)
 		print_centered("presiona x para continuar",68 )
 		if btnp (❎) then
+			cls()
 			_initgame()
 		end
 	end
