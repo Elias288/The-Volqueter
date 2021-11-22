@@ -268,6 +268,11 @@ function _draw()
 	]]
 
 end
+
+function print_centered(str, ye)
+  print("\#7"..str, cam_x+64 - (#str * 2), ye, 8)
+end
+
 function draw_game()
 cls()
 	map()
@@ -289,6 +294,16 @@ cls()
 
 	if player.vida>0 then
 		player:carro()
+	else
+		fillp(▤)
+		rectfill(cam_x,0,cam_x+128,128,0)
+		fillp(█)
+		rectfill(cam_x)	
+		print_centered("te hicieron pollo", 60)
+		print_centered("presiona x para continuar",68 )
+		if btnp (❎) then
+			_initgame()
+		end
 	end
 
 	--score
@@ -333,7 +348,7 @@ function draw_actor(a)
 			a.flp --flip
 		)
 	else
-		spr(83,a.x,a.y+8)
+		spr(83,a.x,a.y+8)		
 	end
 end
 
@@ -617,6 +632,7 @@ function monster_update(e)
 	e.running=true
 	
 	--este comentario indica que franccesco y santiago no hay tocado codigo aun
+	-- se dice "han" troglodita
 
 	--si el jugador esta vivio y no es invulnerable
 	if player.vida>0 and not player.invulnerable then
