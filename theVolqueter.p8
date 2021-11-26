@@ -168,9 +168,22 @@ end
 function _init()
 	init_menu()
 end
+function _reinitgame()
+
+	foreach(entidades, function(x) del(entidades, x)end)
+
+	foreach(enemigos, function(x) del(enemigos, x)end)
+
+	foreach(items, function(x) del(items, x)end)
+
+	foreach(carteles, function(x) del(carteles, x)end)
+
+	_initgame()
+end
+
 
 function _initgame()
-gravity=0.3
+	gravity=0.3
 	friccion=0.85
 
 	tiempo=0
@@ -223,7 +236,7 @@ gravity=0.3
 	map_start=0
 	map_end=1024
 
-	--music(0)
+	music(0)
 	
 	--set state
 _update = update_game
@@ -308,7 +321,7 @@ cls()
 		print_centered("presiona x para continuar",68 )
 		if btnp (❎) then
 			cls()
-			_initgame()
+			_reinitgame()			
 		end
 	end
 
@@ -338,6 +351,32 @@ function draw_info()
 
 	print("world",cam_x+75,5,7)
 	print("1-1",cam_x+80,13,7)
+end
+
+function end_screen()
+if player.x>124*8 then
+	if player.cant_trash>=3 then
+
+		fillp(▤)
+		rectfill(cam_x,0,cam_x+128,128,0)
+		fillp(█)
+		rectfill(cam_x)	
+		print_centered("lo haz logrado, hoy puedes comer",60 )
+		print_centered("compra el refuerzo del principio",68 )		
+		else
+
+		fillp(▤)
+		rectfill(cam_x,0,cam_x+128,128,0)
+		fillp(█)
+		rectfill(cam_x)	
+		print_centered("bernie hoy no comera, f por bernie", 60)
+		print_centered("x para volver a empezar",68 )
+		if btnp (❎) then
+			cls()
+			_reinitgame()
+		end
+		end
+	end
 end
 
 function draw_actor(a) 
@@ -522,7 +561,7 @@ function update_game()
 
 	player_update()
 	player_animate()
-
+	
 	cam_x=player.x-64+(player.w/2)
 	if cam_x<map_start then
 		cam_x=map_start
@@ -536,6 +575,7 @@ function update_game()
 
 end
 function player_update()
+	
 	--physics
 	player.dy+=gravity
 	player.dx*=friccion
@@ -740,6 +780,7 @@ end
 -->8
 
 function map_collide(obj, dir, flag)
+	end_screen()
 	local x=obj.x
 	local y=obj.y
 	local h=obj.h
