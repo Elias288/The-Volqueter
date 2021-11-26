@@ -128,6 +128,7 @@ function new_entity(sp, x, y)
 		a.invT=1				--determina el tiempo de invulnerabilidad
 		a.id=0
 		a.Kann_verletzen=false 	--puede lastimar
+		a.has_refuerzo=false 
 
 		--Carro
 		a.carro=dibujar_carro
@@ -291,6 +292,20 @@ function print_centered(str, ye)
   print("\#7"..str, cam_x+64 - (#str * 2), ye, 8)
 end
 
+function comer_refuerzo()
+		if player.cant_trash<3 then
+			print_centered("ponete a trabajar", 32)
+			print_centered("cuando tengas plata volve", 40)
+		else
+			print_centered("presiona x para comprar",60 )
+			print_centered("el refuerzo supremo",68 )
+			if btnp (❎) then		
+				player.has_refuerzo=true		
+				player.score=0
+		end
+	end
+end
+
 function draw_game()
 cls()
 	map()
@@ -329,7 +344,12 @@ cls()
 	local top=5
 	local right=10  --player-50=right
 	local left=map_end-119
+		
+	if player.x>=17*8 and player.x< 18*8 then
+
+	comer_refuerzo()
 	
+	end
 	draw_info()
 	read_carteles()
 
@@ -357,8 +377,6 @@ function end_screen()
 if player.x>124*8 then
 	if player.cant_trash>=3 then
 
-		fillp(▤)
-		rectfill(cam_x,0,cam_x+128,128,0)
 		fillp(█)
 		rectfill(cam_x)	
 		print_centered("lo haz logrado, hoy puedes comer",60 )
@@ -471,6 +489,9 @@ function dibujar_carro(obj)
 			obj.h, -- no se alto
 			obj.flp --flip
 		)
+	end
+	if player.has_refuerzo then
+	spr(84,c_x,player.y)
 	end
 end
 
