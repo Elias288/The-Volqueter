@@ -7,8 +7,12 @@ entidades={}
 enemigos={}
 items={}
 carteles={}
-posiciones={
+posicionesMaxis={
 	700,500,600
+}
+
+posicionesPolis={
+	840, 760, 592
 }
 
 posiciones_items={
@@ -23,10 +27,184 @@ function init_menu()
 	_draw = draw_menu
 end
 
-function Ending()
-	_update = update_ending
-	_draw = draw_Ending
+function update_menu ()
+	if btnp (❎) then
+		_initgame()
+	end
 end
+
+function new_entity(sp, x, y)
+	--sprite, x, y, ancho, halto, direccion
+	local a={
+		sp=sp, 		--sprite actual
+		x=x,
+		y=y,
+		dx=0,
+		dy=0,
+		boost=4,	--salto
+		box={
+			x=0, y=0, w=10, h=16
+		}
+	}
+
+	--entidad viva
+	if(fget(sp,2)) then 
+		a.vida=0 			--vida
+	
+		a.junmping=false
+		a.running=false
+		a.landed=false
+		a.falling=false
+
+		a.sliding=false
+		a.attack=false
+
+		a.draw=draw_actor
+		a.flp=false 		--false:derecha true:izquierda
+		a.acc=0.5  			--aceleracion
+		a.time=0
+		a.sp_attack=4
+		a.anim=0
+		--dibujo
+		a.h=16				--alto sprite
+		a.w=16				--ancho sprite
+		
+		add(entidades,a) --agrega a entidades
+
+	--entidad no viva
+	else
+		a.w=8 
+		a.h=8
+	end
+
+	--jugador
+	if(fget(sp,3)) then
+		--Jugador
+		a.is_player=true		--es jugador
+		a.vida=3
+		a.score=0
+		a.cant_trash=0
+		a.invulnerable=false
+		a.invT=1				--determina el tiempo de invulnerabilidad
+		a.id=0
+		a.Kann_verletzen=false 	--puede lastimar
+		a.has_refuerzo=false 
+
+		--Carro
+		a.carro=dibujar_carro
+		a.w_carro=16
+		a.c_carro=0				--capacidad carro
+		a.anim_c=0 				--carro actual
+		a.sp_c=33				--first srpite carro
+	end
+
+	--carteles
+	if(fget(sp,4)) then
+		a.viendo=false
+		a.msg=""
+		a.msg_w=0
+
+		add(carteles,a)
+	end
+
+	--items
+	if(fget(sp,5)) then
+		a.recogido=false
+		a.update=item_update
+
+		add(items,a)
+	end
+
+	--enemigos
+	if(fget(sp,7)) then
+		a.vida=1
+		a.acc=0.2
+		add(enemigos,a)
+	end
+
+	return a
+end
+
+function _init()
+	init_menu()
+end
+
+function _reinitgame()
+
+	foreach(entidades, function(x) del(entidades, x)end)
+
+	foreach(enemigos, function(x) del(enemigos, x)end)
+
+	foreach(items, function(x) del(items, x)end)
+
+	foreach(carteles, function(x) del(carteles, x)end)
+
+	_initgame()
+end
+
+function _initgame()
+	gravity=0.3
+	friccion=0.85
+
+	tiempo=0
+
+	player=new_entity(1,10,48)
+	
+	local maxi=new_entity(192,300,48)
+	local nancy=new_entity(224,270,48)
+
+	--maxis
+	foreach(posicionesMaxis, 
+		function(v) new_entity(192,v,48) end
+	)
+	--polis
+	foreach(posicionesPolis, 
+		function(v) new_entity(224,v,80) end
+	)
+
+	--[[for k,v in pairs(posiciones) do
+		local npc=new_entity(192,v,48)
+	end]]
+
+	--items
+	for i,f in pairs(posiciones_items) do
+		local item=new_entity(83, 
+			posiciones_items[i][1], 
+			posiciones_items[i][2]
+		)
+		item.score=5
+	end
+
+	--carteles
+	local cartel1=new_entity(82,37,56)
+	cartel1.msg1="muevete con ⬅️➡️"
+	cartel1.msg2="salta con ❎"
+	cartel1.msg_w=62
+	
+	local cartel2=new_entity(82,100,56)
+	cartel2.msg3="recoge la basura"
+	cartel2.msg_w=62
+
+	local cartel3=new_entity(82,160,48)
+	cartel3.msg1="cuidado los empleados"
+	cartel3.msg2="publicos atacan!!"
+	cartel3.msg3="defiendete con 🅾️"
+	cartel3.msg_w=82
+
+	palt(0, alse)
+	palt(7,true)
+
+	cam_x=0
+	map_start=0
+	map_end=1024
+
+	music(0)
+	
+	--set state
+	_update = update_game
+	_draw= draw_game
+end
+-->8
 
 function draw_menu()
 	cls()
@@ -119,194 +297,6 @@ function drawimg_ending (s)
 		
 		i+=1
 	until i>#s
-end
-
-function update_menu ()
-	if btnp (❎) then
-		_initgame()
-	end
-end
-
-function update_ending ()
-	if btnp (❎) then
-		_reinitgame()
-	end
-end
-
-function new_entity(sp, x, y)
-	--sprite, x, y, ancho, halto, direccion
-	local a={
-		sp=sp, 		--sprite actual
-		x=x,
-		y=y,
-		dx=0,
-		dy=0,
-		boost=4,	--salto
-		box={
-			x=0, y=0, w=10, h=16
-		}
-	}
-
-	--entidad viva
-	if(fget(sp,2)) then 
-		a.vida=0 			--vida
-	
-		a.junmping=false
-		a.running=false
-		a.landed=false
-		a.falling=false
-
-		a.sliding=false
-		a.attack=false
-
-		a.draw=draw_actor
-		a.flp=false 		--false:derecha true:izquierda
-		a.acc=0.5  			--aceleracion
-		a.time=0
-		a.sp_attack=4
-		a.anim=0
-		--dibujo
-		a.h=16				--alto sprite
-		a.w=16				--ancho sprite
-		
-		add(entidades,a) --agrega a entidades
-
-	--entidad no viva
-	else
-		a.w=8 
-		a.h=8
-	end
-
-	--jugador
-	if(fget(sp,3)) then
-		--Jugador
-		a.is_player=true		--es jugador
-		a.vida=3
-		a.score=0
-		a.cant_trash=0
-		a.invulnerable=false
-		a.invT=1				--determina el tiempo de invulnerabilidad
-		a.id=0
-		a.Kann_verletzen=false 	--puede lastimar
-		a.has_refuerzo=false 
-
-		--Carro
-		a.carro=dibujar_carro
-		a.w_carro=16
-		a.c_carro=0				--capacidad carro
-		a.anim_c=0 				--carro actual
-		a.sp_c=33				--first srpite carro
-	end
-
-	--carteles
-	if(fget(sp,4)) then
-		a.viendo=false
-		a.msg=""
-		a.msg_w=0
-
-		add(carteles,a)
-	end
-
-	--items
-	if(fget(sp,5)) then
-		a.recogido=false
-		a.update=item_update
-
-		add(items,a)
-	end
-
-	--enemigos
-	if(fget(sp,7)) then
-		a.is_=true
-		a.vida=1
-		a.acc=0.2
-		add(enemigos,a)
-	end
-
-	return a
-end
-
-function _init()
-	init_menu()
-end
-
-function _reinitgame()
-
-	foreach(entidades, function(x) del(entidades, x)end)
-
-	foreach(enemigos, function(x) del(enemigos, x)end)
-
-	foreach(items, function(x) del(items, x)end)
-
-	foreach(carteles, function(x) del(carteles, x)end)
-
-	_initgame()
-end
-
-function _initgame()
-	gravity=0.3
-	friccion=0.85
-
-	tiempo=0
-
-	player=new_entity(1,10,48)
-	
-	local maxi=new_entity(192,300,48)
-	local nancy=new_entity(224,270,48)
-
-	--maxis
-	foreach(posiciones, 
-		function(v)
-			local npc=new_entity(192,v,48)
-		end
-	)
-
-	--[[for k,v in pairs(posiciones) do
-		local npc=new_entity(192,v,48)
-	end]]
-
-	--items
-	for i,f in pairs(posiciones_items) do
-		local item=new_entity(83, 
-			posiciones_items[i][1], 
-			posiciones_items[i][2]
-		)
-		item.score=5
-	end
-
-	--carteles
-	local cartel1=new_entity(82,37,56)
-	cartel1.msg1="muevete con ⬅️➡️"
-	cartel1.msg2="salta con ❎"
-	cartel1.msg_w=62
-	
-	local cartel2=new_entity(82,100,56)
-	cartel2.msg3="recoge la basura"
-	cartel2.msg_w=62
-
-	local cartel3=new_entity(82,160,48)
-	cartel3.msg1="cuidado los empleados"
-	cartel3.msg2="publicos atacan!!"
-	cartel3.msg3="defiendete con 🅾️"
-	cartel3.msg_w=82
-
-	palt(0, alse)
-	palt(7,true)
-
-	cam_x=0
-	map_start=0
-	map_end=1024
-
-	music(0)
-	
-	--set state
-	_update = update_game
-	_draw= draw_game
-end
--->8
-
-function _draw()
-	
 end
 
 function print_centered(str, ye)
@@ -415,35 +405,6 @@ function draw_info()
 
 	print("world",cam_x+75,5,7)
 	print("1-1",cam_x+80,13,7)
-end
-
-function end_screen()
-	if player.x>124*8 then
-		if not player.has_refuerzo then
-			if player.cant_trash>=3 then
-
-				fillp(█)
-				rectfill(cam_x)	
-				player.has_refuerzo=true
-				print_centered("lo haz logrado, hoy puedes comer",60 )
-				print_centered("compra el refuerzo del principio",68 )	
-				player.cant_trash=0;
-				foreach(items, function(x) del(items, x)end)
-			else
-
-				fillp(▤)
-				rectfill(cam_x,0,cam_x+128,128,0)
-				fillp(█)
-				rectfill(cam_x)	
-				print_centered("bernie hoy no comera, f por bernie", 60)
-				print_centered("x para volver a empezar",68 )
-				if btnp (❎) then
-					cls()
-					_reinitgame()
-				end
-			end
-		end
-	end
 end
 
 function draw_actor(a) 
@@ -619,9 +580,7 @@ function monster_animate(a)
 end
 
 -->8
-function _update()
 
-end
 function update_game()
 	tiempo += 1
 
@@ -996,6 +955,50 @@ function abs_box (e)
 
 	return box
 end
+
+-->8 
+
+function end_screen()
+	if player.x>124*8 then
+		if not player.has_refuerzo then
+			if player.cant_trash>=3 then
+				fillp(█)
+				rectfill(cam_x)	
+				player.has_refuerzo=true
+				print_centered("lo haz logrado, hoy puedes comer",60 )
+				print_centered("compra el refuerzo del principio",68 )	
+				player.cant_trash=0;
+				foreach(items, function(x) del(items, x)end)
+
+
+			else
+
+				fillp(▤)
+				rectfill(cam_x,0,cam_x+128,128,0)
+				fillp(█)
+				rectfill(cam_x)	
+				print_centered("no recolectaste suficiente", 60)
+				 print_centered("vuelve cuando tengas mas",68 )
+				--[[if btnp (❎) then
+					cls()
+					_reinitgame()
+				end ]]
+			end
+		end
+	end
+end
+
+function Ending()
+	_update = update_ending
+	_draw = draw_Ending
+end
+
+function update_ending ()
+	if btnp (❎) then
+		_reinitgame()
+	end
+end
+
 
 __gfx__
 0000000077777777777777777777777777777777777777777777777777777777777777770000000000000000000000000000000000000000aaaaaaaaaaaaaaaa
